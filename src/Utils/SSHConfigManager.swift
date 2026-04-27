@@ -40,14 +40,11 @@ final class SSHConfigManager {
             let trimmed = line.trimmingCharacters(in: .whitespacesAndNewlines)
             let lower = trimmed.lowercased()
 
-            // Match a Host line that includes github.com (e.g. "Host github.com" or "Host gh github.com")
             if lower.hasPrefix("host ") && trimmed.contains("github.com") {
-                // Scan forward within this block for IdentityFile
                 for j in (index + 1)..<lines.count {
                     let innerLine = lines[j].trimmingCharacters(in: .whitespacesAndNewlines)
                     let innerLower = innerLine.lowercased()
 
-                    // Stop if we encounter the start of another host block
                     if innerLower.hasPrefix("host ") {
                         break
                     }
@@ -67,9 +64,7 @@ final class SSHConfigManager {
     }
 
     /// Rewrites or adds the `Host github.com` block with the supplied `IdentityFile`.
-    /// Preserves all other configuration, comments, and ordering.
     func applyIdentity(keyPath: String) -> Bool {
-        // Ensure ~/.ssh exists with secure permissions
         let sshDir = sshDirectory
         if !FileManager.default.fileExists(atPath: sshDir.path) {
             do {
@@ -128,7 +123,6 @@ final class SSHConfigManager {
                 lines.insert(newIdentityLine, at: hostIndex + 1)
             }
         } else {
-            // Append a new Host block, separated by a blank line if content already exists
             if !content.isEmpty && !lines.last!.isEmpty {
                 lines.append("")
             }
@@ -152,7 +146,7 @@ final class SSHConfigManager {
     }
 
     /// Clears all identities from the SSH agent and adds the specified key.
-    func addKeyToAgent(keyPath: String) -> Bool {
+    func addKeyToAgent(keyPath: String) async -> Bool {
         let resolvedPath = resolvePath(keyPath)
 
         guard FileManager.default.fileExists(atPath: resolvedPath) else {
@@ -160,28 +154,9 @@ final class SSHConfigManager {
         }
 
         // Remove all existing identities (best-effort)
-        let clearTask = Process()
-        clearTask.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        clearTask.arguments = ["ssh-add", "-D"]
-
-        do {
-            try clearTask.run()
-            clearTask.waitUntilExit()
-        } catch {
-            // Agent may be empty or not running; continue regardless
-        }
+        _ = await ShellRunner.run(["ssh-add", "-D"])
 
         // Add the new identity
-        let addTask = Process()
-        addTask.executableURL = URL(fileURLWithPath: "/usr/bin/env")
-        addTask.arguments = ["ssh-add", resolvedPath]
-
-        do {
-            try addTask.run()
-            addTask.waitUntilExit()
-            return addTask.terminationStatus == 0
-        } catch {
-            return false
-        }
+        return await ShellRunner.runSuccess(["ssh-add", resolvedPath])
     }
 }
