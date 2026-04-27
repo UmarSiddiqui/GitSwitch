@@ -9,6 +9,7 @@ final class ProfileViewModel: ObservableObject {
     @Published var activeProfileID: UUID?
     @Published var isSwitching: Bool = false
     @Published var lastError: String?
+    @Published var lastSwitchedDate: Date?
 
     private let profilesKey = "gitswitch_profiles"
 
@@ -82,6 +83,8 @@ final class ProfileViewModel: ObservableObject {
         guard gitSuccess else {
             lastError = "Failed to apply Git configuration."
             isSwitching = false
+            FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "Git config failed")
+            FeedbackManager.shared.playFailureSound()
             return
         }
 
@@ -95,6 +98,8 @@ final class ProfileViewModel: ObservableObject {
         guard sshSuccess else {
             lastError = "Failed to update SSH configuration."
             isSwitching = false
+            FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "SSH config failed")
+            FeedbackManager.shared.playFailureSound()
             return
         }
 
@@ -102,11 +107,18 @@ final class ProfileViewModel: ObservableObject {
         guard agentSuccess else {
             lastError = "Failed to add SSH key to agent. Make sure the key is valid and the passphrase (if any) is cached."
             isSwitching = false
+            FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "SSH agent failed")
+            FeedbackManager.shared.playFailureSound()
             return
         }
 
         activeProfileID = profile.id
         isSwitching = false
+        lastSwitchedDate = Date()
+
+        FeedbackManager.shared.notifySwitchSuccess(profileName: profile.name)
+        FeedbackManager.shared.playSuccessSound()
+        FeedbackManager.shared.performHapticFeedback()
     }
 
     // MARK: - CRUD
