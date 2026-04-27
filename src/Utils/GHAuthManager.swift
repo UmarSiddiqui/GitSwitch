@@ -23,13 +23,43 @@ final class GHAuthManager {
         guard let output = output else { return nil }
 
         for line in output.components(separatedBy: .newlines) {
-            if line.contains("account UmarSiddiqui") || line.contains("account umar-abweb") {
-                let parts = line.components(separatedBy: "account ")
-                if parts.count > 1 {
-                    return parts[1].components(separatedBy: " ").first
+            // gh auth status lines look like:
+            // "  ✓ Logged in to github.com as umarsiddiqui (...)"
+            if line.contains("Logged in to github.com as ") {
+                if let range = line.range(of: "as ") {
+                    let after = line[range.upperBound...]
+                    let username = after.components(separatedBy: .whitespaces).first
+                    return username?.trimmingCharacters(in: .whitespaces)
                 }
             }
         }
         return nil
+    }
+
+    /// Returns all GitHub accounts known to `gh` CLI.
+    static func listAccounts() async -> [String] {
+        guard await isAvailable() else { return [] }
+
+        let (output, exitCode) = await ShellRunner.run(["gh", "auth", "status", "--hostname", "github.com"])
+        guard exitCode == 0, let output = output else { return [] }
+
+        var accounts: [String] = []
+        for line in output.components(separatedBy: .newlines) {
+            if line.contains("Logged in to github.com as ") {
+                if let range = line.range(of: "as ") {
+                    let after = line[range.upperBound...]
+                    if let username = after.components(separatedBy: .whitespaces).first {
+                        accounts.append(String(username))
+                    }
+                }
+            }
+        }
+        return accounts
+    }
+
+    /// Opens a browser-based GitHub login flow via `gh auth login --web`.
+    static func loginWithBrowser() async {
+        guard await isAvailable() else { return }
+        _ = await ShellRunner.run(["gh", "auth", "login", "--web", "--hostname", "github.com"])
     }
 }

@@ -17,6 +17,11 @@
 		A100000F /* GitConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100000E /* GitConfigManager.swift */; };
 		A1000011 /* SSHConfigManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000010 /* SSHConfigManager.swift */; };
 		A1000013 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = A1000012 /* Assets.xcassets */; };
+		A100001F /* FeedbackManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100001E /* FeedbackManager.swift */; };
+		A1000021 /* GHAuthManager.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000020 /* GHAuthManager.swift */; };
+		A1000023 /* ShellRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022 /* ShellRunner.swift */; };
+		A1000025 /* ProfileScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024 /* ProfileScanner.swift */; };
+		A1000027 /* ScanResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026 /* ScanResultsView.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -30,6 +35,11 @@
 		A100000E /* GitConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitConfigManager.swift; sourceTree = "<group>"; };
 		A1000010 /* SSHConfigManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SSHConfigManager.swift; sourceTree = "<group>"; };
 		A1000012 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		A100001E /* FeedbackManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FeedbackManager.swift; sourceTree = "<group>"; };
+		A1000020 /* GHAuthManager.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GHAuthManager.swift; sourceTree = "<group>"; };
+		A1000022 /* ShellRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellRunner.swift; sourceTree = "<group>"; };
+		A1000024 /* ProfileScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScanner.swift; sourceTree = "<group>"; };
+		A1000026 /* ScanResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultsView.swift; sourceTree = "<group>"; };
 		A1FFFFFF /* GitSwitch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitSwitch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -56,7 +66,7 @@
 				A1000018 /* Utils */,
 				A1000012 /* Assets.xcassets */,
 			);
-			path = GitSwitch;
+			path = src;
 			sourceTree = "<group>";
 		};
 		A1000015 /* Models */ = {
@@ -80,6 +90,7 @@
 			children = (
 				A100000A /* ProfileCardView.swift */,
 				A100000C /* ProfileEditorView.swift */,
+				A1000026 /* ScanResultsView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -89,6 +100,10 @@
 			children = (
 				A100000E /* GitConfigManager.swift */,
 				A1000010 /* SSHConfigManager.swift */,
+				A100001E /* FeedbackManager.swift */,
+				A1000020 /* GHAuthManager.swift */,
+				A1000022 /* ShellRunner.swift */,
+				A1000024 /* ProfileScanner.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -177,6 +192,11 @@
 				A100000D /* ProfileEditorView.swift in Sources */,
 				A100000F /* GitConfigManager.swift in Sources */,
 				A1000011 /* SSHConfigManager.swift in Sources */,
+				A100001F /* FeedbackManager.swift in Sources */,
+				A1000021 /* GHAuthManager.swift in Sources */,
+				A1000023 /* ShellRunner.swift in Sources */,
+				A1000025 /* ProfileScanner.swift in Sources */,
+				A1000027 /* ScanResultsView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

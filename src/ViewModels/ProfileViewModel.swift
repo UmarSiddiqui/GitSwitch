@@ -11,6 +11,7 @@ final class ProfileViewModel: ObservableObject {
     @Published var isSwitching: Bool = false
     @Published var lastError: String?
     @Published var lastSwitchedDate: Date?
+    @Published var isScanning: Bool = false
 
     private let profilesKey = "gitswitch_profiles"
 
@@ -27,27 +28,8 @@ final class ProfileViewModel: ObservableObject {
            let saved = try? JSONDecoder().decode([GitProfile].self, from: data) {
             profiles = saved
         } else {
-            // Seed with sensible defaults on first launch
-            profiles = [
-                GitProfile(
-                    id: UUID(),
-                    name: "Personal",
-                    username: "umarsiddiqui",
-                    gitName: "Umar Siddiqui",
-                    gitEmail: "73005527+UmarSiddiqui@users.noreply.github.com",
-                    sshKeyPath: "~/.ssh/id_ed25519_github",
-                    isDefault: true
-                ),
-                GitProfile(
-                    id: UUID(),
-                    name: "Work",
-                    username: "umar-abweb",
-                    gitName: "Umar ABWeb",
-                    gitEmail: "umar@abweb.com.au",
-                    sshKeyPath: "~/.ssh/id_ecdsa",
-                    isDefault: false
-                )
-            ]
+            // First launch — leave empty so the user can scan or add profiles
+            profiles = []
             saveProfiles()
         }
 
@@ -140,6 +122,11 @@ final class ProfileViewModel: ObservableObject {
         saveProfiles()
     }
 
+    func addProfiles(_ newProfiles: [GitProfile]) {
+        profiles.append(contentsOf: newProfiles)
+        saveProfiles()
+    }
+
     func updateProfile(_ profile: GitProfile) {
         guard let index = profiles.firstIndex(where: { $0.id == profile.id }) else { return }
         profiles[index] = profile
@@ -152,6 +139,31 @@ final class ProfileViewModel: ObservableObject {
             activeProfileID = nil
         }
         saveProfiles()
+    }
+
+    // MARK: - Scanning
+
+    @MainActor
+    func scanForProfiles() async -> [ScannedProfile] {
+        isScanning = true
+        defer { isScanning = false }
+        return await ProfileScanner.scan()
+    }
+
+    @MainActor
+    func importScannedProfiles(_ scanned: [ScannedProfile]) {
+        let newProfiles = scanned.map { s in
+            GitProfile(
+                id: UUID(),
+                name: s.name,
+                username: s.username,
+                gitName: s.gitName,
+                gitEmail: s.gitEmail,
+                sshKeyPath: s.sshPrivateKeyPath,
+                isDefault: false
+            )
+        }
+        addProfiles(newProfiles)
     }
 
     // MARK: - Detection

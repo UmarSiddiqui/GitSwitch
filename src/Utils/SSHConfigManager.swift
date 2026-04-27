@@ -9,7 +9,11 @@ final class SSHConfigManager {
         FileManager.default.homeDirectoryForCurrentUser.appendingPathComponent(".ssh")
     }
 
-    private var sshConfigPath: URL {
+    var sshConfigPath: String {
+        sshDirectory.appendingPathComponent("config").path
+    }
+
+    private var sshConfigURL: URL {
         sshDirectory.appendingPathComponent("config")
     }
 
@@ -26,7 +30,7 @@ final class SSHConfigManager {
 
     /// Parses `~/.ssh/config` and returns the current `IdentityFile` for `Host github.com`.
     func readCurrentIdentity() -> String? {
-        let configPath = sshConfigPath
+        let configPath = sshConfigURL
         guard FileManager.default.fileExists(atPath: configPath.path) else { return nil }
 
         guard let data = try? Data(contentsOf: configPath),
@@ -78,7 +82,7 @@ final class SSHConfigManager {
             }
         }
 
-        let configPath = sshConfigPath
+        let configPath = sshConfigURL
         var content = ""
 
         if FileManager.default.fileExists(atPath: configPath.path),
