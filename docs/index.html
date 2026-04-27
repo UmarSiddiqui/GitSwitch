@@ -267,18 +267,21 @@
 
   <section class="how-it-works">
     <h2>How It Works</h2>
-    <p>Every time you switch a profile, GitSwitch performs three atomic steps:</p>
+    <p>When you choose a profile, GitSwitch runs one pipeline (after verifying the SSH private key file exists):</p>
     <ol>
-      <li>Overwrites <code>~/.gitconfig</code> with the selected name &amp; email</li>
-      <li>Points <code>~/.ssh/config</code> <code>IdentityFile</code> to the right key</li>
-      <li>Runs <code>ssh-add</code> to unload the old key and load the new one</li>
+      <li><strong>Git identity</strong> — <code>git config --global</code> for <code>user.name</code> and <code>user.email</code></li>
+      <li><strong>HTTPS → SSH</strong> — sets <code>url.git@github.com:.insteadOf</code> to <code>https://github.com/</code> so HTTPS remotes use SSH</li>
+      <li><strong>GitHub CLI</strong> — if <code>gh</code> is installed, <code>gh auth switch --user</code> for that profile’s username</li>
+      <li><strong>SSH config</strong> — updates the <code>Host github.com</code> block so <code>IdentityFile</code> is the profile’s key</li>
+      <li><strong>Agent</strong> — <code>ssh-add -D</code> then <code>ssh-add</code> on the new key</li>
     </ol>
+    <p style="margin-top: 16px;">Profiles are saved in app preferences. On first launch, example profiles are created for you to edit in Settings. At startup, the app infers the active profile from Git config and the current GitHub <code>IdentityFile</code>.</p>
   </section>
 
   <section class="stars">
     <h2>⭐ Star History</h2>
-    <a href="https://star-history.com/#umarsiddiqui/GitSwitch&amp;Date" target="_blank" rel="noopener">
-      <img src="https://api.star-history.com/svg?repos=umarsiddiqui/GitSwitch&type=Date" alt="Star History Chart">
+    <a href="https://star-history.com/#umarsiddiqui/gitswitch&amp;Date" target="_blank" rel="noopener">
+      <img src="https://api.star-history.com/svg?repos=umarsiddiqui/gitswitch&amp;type=Date" alt="Star History Chart">
     </a>
   </section>
 
