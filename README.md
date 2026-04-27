@@ -31,8 +31,10 @@
 ## Features
 
 - 🚀 **One-click profile switching** from the menu bar
+- 🔍 **Auto-scan existing accounts** — detects GitHub CLI logins, SSH keys, and Git configs in one click
 - 🔑 **Automatic SSH key rotation** — swaps keys instantly
 - ⚙️ **Global git config switching** — updates name & email automatically
+- 🔗 **One-click GitHub auth** — authorize via browser or copy SSH key straight to GitHub settings
 - 🎨 **Minimalistic native macOS design** — feels right at home on your Mac
 - 🌓 **Light & Dark mode support** — adapts to your system appearance
 - 🔒 **HTTPS→SSH URL rewriting** — ensures all remotes use the right key
@@ -50,11 +52,17 @@
 
 [![Star History Chart](https://api.star-history.com/svg?repos=umarsiddiqui/gitswitch&type=Date)](https://star-history.com/#umarsiddiqui/gitswitch&Date)
 
+## 📥 Download
+
+**[⬇ Download GitSwitch.app.zip](../../raw/main/GitSwitch.app.zip)**
+
+> **Latest build:** includes all fixes up to the current `main` branch.
+
 ## Installation
 
-1. Download `GitSwitch.app` from the [Releases](https://github.com/umarsiddiqui/GitSwitch/releases) page
-2. Drag it to your **Applications** folder (or run directly from Desktop)
-3. Right-click → **Open** to bypass Gatekeeper on first launch
+1. **Download** `GitSwitch.app.zip` using the link above (or from the [Releases](https://github.com/umarsiddiqui/GitSwitch/releases) page)
+2. **Unzip** it and drag `GitSwitch.app` to your **Applications** folder (or run directly from Desktop)
+3. **Right-click → Open** to bypass Gatekeeper on first launch
 4. Look for the indigo icon in your menu bar — you're ready to go!
 
 > **Note:** GitSwitch requires macOS 14.0 or later.
