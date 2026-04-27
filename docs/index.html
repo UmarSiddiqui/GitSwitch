@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>GitSwitch — macOS GitHub Profile Switcher</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="GitSwitch is a minimalistic macOS menu-bar app for instantly switching between Git identities and SSH keys.">
+  <meta name="theme-color" content="#1a1a2e">
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      background: #1a1a2e;
+      color: #eee;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      line-height: 1.6;
+      -webkit-font-smoothing: antialiased;
+    }
+
+    a {
+      color: #63b3ed;
+      text-decoration: none;
+    }
+
+    a:hover {
+      text-decoration: underline;
+    }
+
+    /* Hero */
+    .hero {
+      text-align: center;
+      padding: 80px 20px 40px;
+    }
+
+    .hero img {
+      max-width: 720px;
+      width: 100%;
+      border-radius: 12px;
+      box-shadow: 0 20px 60px rgba(0,0,0,0.5);
+    }
+
+    .hero h1 {
+      font-size: 3rem;
+      font-weight: 700;
+      margin-top: 32px;
+      letter-spacing: -0.02em;
+    }
+
+    .hero p.tagline {
+      font-size: 1.25rem;
+      color: #a0aec0;
+      margin-top: 12px;
+      max-width: 520px;
+      margin-left: auto;
+      margin-right: auto;
+    }
+
+    .hero .badges {
+      margin-top: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 8px;
+    }
+
+    .hero .badges img {
+      width: auto;
+      height: 20px;
+      border-radius: 0;
+      box-shadow: none;
+    }
+
+    .btn-download {
+      display: inline-block;
+      margin-top: 32px;
+      background: #48bb78;
+      color: #fff;
+      font-size: 1.1rem;
+      font-weight: 600;
+      padding: 14px 36px;
+      border-radius: 8px;
+      transition: transform 0.15s ease, background 0.15s ease;
+    }
+
+    .btn-download:hover {
+      transform: translateY(-2px);
+      background: #38a169;
+      text-decoration: none;
+    }
+
+    /* Features */
+    .features {
+      padding: 60px 20px;
+      max-width: 960px;
+      margin: 0 auto;
+    }
+
+    .features h2 {
+      text-align: center;
+      font-size: 1.75rem;
+      margin-bottom: 40px;
+      color: #fff;
+    }
+
+    .feature-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 24px;
+    }
+
+    .feature-card {
+      background: rgba(255,255,255,0.04);
+      border: 1px solid rgba(255,255,255,0.06);
+      border-radius: 12px;
+      padding: 28px 24px;
+      text-align: center;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .feature-card:hover {
+      transform: translateY(-4px);
+      border-color: rgba(255,255,255,0.15);
+    }
+
+    .feature-card .icon {
+      font-size: 2.2rem;
+      margin-bottom: 14px;
+      display: block;
+    }
+
+    .feature-card h3 {
+      font-size: 1.1rem;
+      margin-bottom: 8px;
+      color: #fff;
+    }
+
+    .feature-card p {
+      font-size: 0.95rem;
+      color: #a0aec0;
+      line-height: 1.5;
+    }
+
+    /* How it works */
+    .how-it-works {
+      padding: 40px 20px 60px;
+      max-width: 720px;
+      margin: 0 auto;
+      text-align: center;
+    }
+
+    .how-it-works h2 {
+      font-size: 1.75rem;
+      margin-bottom: 20px;
+      color: #fff;
+    }
+
+    .how-it-works p {
+      color: #a0aec0;
+      font-size: 1.05rem;
+      margin-bottom: 16px;
+    }
+
+    .how-it-works ol {
+      text-align: left;
+      display: inline-block;
+      color: #cbd5e0;
+      font-size: 1rem;
+      padding-left: 20px;
+    }
+
+    .how-it-works li {
+      margin-bottom: 10px;
+    }
+
+    /* Star history */
+    .stars {
+      padding: 40px 20px 60px;
+      text-align: center;
+    }
+
+    .stars h2 {
+      font-size: 1.75rem;
+      margin-bottom: 24px;
+      color: #fff;
+    }
+
+    .stars img {
+      max-width: 720px;
+      width: 100%;
+      border-radius: 8px;
+    }
+
+    /* Footer */
+    .footer {
+      text-align: center;
+      padding: 40px 20px;
+      border-top: 1px solid rgba(255,255,255,0.06);
+      color: #718096;
+      font-size: 0.9rem;
+    }
+
+    .footer a {
+      color: #a0aec0;
+    }
+
+    @media (max-width: 600px) {
+      .hero h1 {
+        font-size: 2.2rem;
+      }
+      .hero p.tagline {
+        font-size: 1rem;
+      }
+      .btn-download {
+        padding: 12px 28px;
+        font-size: 1rem;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <section class="hero">
+    <img src="../assets/banner.png" alt="GitSwitch Banner">
+    <h1>GitSwitch</h1>
+    <p class="tagline">Minimalistic macOS menu-bar app for switching between GitHub profiles instantly.</p>
+
+    <div class="badges">
+      <img src="https://img.shields.io/github/stars/umarsiddiqui/GitSwitch?style=flat-square&color=brightgreen" alt="Stars">
+      <img src="https://img.shields.io/badge/license-MIT-blue.svg?style=flat-square" alt="License">
+      <img src="https://img.shields.io/badge/platform-macOS%2014+-lightgrey.svg?style=flat-square&logo=apple" alt="Platform">
+      <img src="https://img.shields.io/badge/swift-5.9+-FA7343.svg?style=flat-square&logo=swift" alt="Swift">
+      <img src="https://img.shields.io/badge/release-v1.0-blue.svg?style=flat-square" alt="Latest Release">
+    </div>
+
+    <a class="btn-download" href="https://github.com/umarsiddiqui/GitSwitch/releases">Download GitSwitch</a>
+  </section>
+
+  <section class="features">
+    <h2>Features</h2>
+    <div class="feature-grid">
+      <div class="feature-card">
+        <span class="icon">🚀</span>
+        <h3>One-Click Switching</h3>
+        <p>Switch Git identities directly from your menu bar — no terminal needed.</p>
+      </div>
+      <div class="feature-card">
+        <span class="icon">🔑</span>
+        <h3>SSH Key Rotation</h3>
+        <p>Automatically swaps SSH keys and updates the agent for seamless auth.</p>
+      </div>
+      <div class="feature-card">
+        <span class="icon">⚙️</span>
+        <h3>Git Config Sync</h3>
+        <p>Updates global <code>user.name</code> and <code>user.email</code> instantly.</p>
+      </div>
+      <div class="feature-card">
+        <span class="icon">🎨</span>
+        <h3>Native macOS Design</h3>
+        <p>Clean, minimalistic SwiftUI interface that feels right at home.</p>
+      </div>
+    </div>
+  </section>
+
+  <section class="how-it-works">
+    <h2>How It Works</h2>
+    <p>Every time you switch a profile, GitSwitch performs three atomic steps:</p>
+    <ol>
+      <li>Overwrites <code>~/.gitconfig</code> with the selected name &amp; email</li>
+      <li>Points <code>~/.ssh/config</code> <code>IdentityFile</code> to the right key</li>
+      <li>Runs <code>ssh-add</code> to unload the old key and load the new one</li>
+    </ol>
+  </section>
+
+  <section class="stars">
+    <h2>⭐ Star History</h2>
+    <a href="https://star-history.com/#umarsiddiqui/GitSwitch&amp;Date" target="_blank" rel="noopener">
+      <img src="https://api.star-history.com/svg?repos=umarsiddiqui/GitSwitch&type=Date" alt="Star History Chart">
+    </a>
+  </section>
+
+  <footer class="footer">
+    <p>
+      <a href="https://github.com/umarsiddiqui/GitSwitch">GitHub</a> &nbsp;·&nbsp;
+      <a href="https://github.com/umarsiddiqui/GitSwitch/releases">Releases</a> &nbsp;·&nbsp;
+      <a href="https://github.com/umarsiddiqui/GitSwitch/blob/main/LICENSE">License</a>
+    </p>
+    <p style="margin-top: 8px;">Crafted with care by <a href="https://github.com/umarsiddiqui">Umar Siddiqui</a></p>
+  </footer>
+
+</body>
+</html>
