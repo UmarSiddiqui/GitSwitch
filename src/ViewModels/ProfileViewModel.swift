@@ -88,6 +88,9 @@ final class ProfileViewModel: ObservableObject {
         // Ensure HTTPS URLs are rewritten to SSH so profile switching works for all clones
         GitConfigManager.ensureSSHInsteadOf()
 
+        // Switch gh CLI account to match this profile
+        GHAuthManager.switchToAccount(profile.username)
+
         let sshSuccess = sshManager.applyIdentity(keyPath: profile.sshKeyPath)
         guard sshSuccess else {
             lastError = "Failed to update SSH configuration."
