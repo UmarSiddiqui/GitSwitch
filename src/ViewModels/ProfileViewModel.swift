@@ -1,5 +1,6 @@
 import Foundation
 import Combine
+import AppKit
 
 /// Manages the collection of Git profiles, persists them via `UserDefaults`,
 /// and handles activation (switching Git & SSH configs).
@@ -67,8 +68,19 @@ final class ProfileViewModel: ObservableObject {
 
     /// Switches the global Git identity and SSH key to match the chosen profile.
     func activateProfile(_ profile: GitProfile) {
+        Task { @MainActor in
+            await performSwitch(to: profile)
+        }
+    }
+
+    @MainActor
+    private func performSwitch(to profile: GitProfile) async {
         isSwitching = true
         lastError = nil
+
+        // Prevent macOS from terminating the app while switching
+        ProcessInfo.processInfo.disableSuddenTermination()
+        defer { ProcessInfo.processInfo.enableSuddenTermination() }
 
         let sshManager = SSHConfigManager()
 
@@ -76,6 +88,8 @@ final class ProfileViewModel: ObservableObject {
         guard sshManager.keyExists(at: profile.sshKeyPath) else {
             lastError = "SSH key not found: \(profile.sshKeyPath)\nPlease check the path in Settings."
             isSwitching = false
+            FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "SSH key missing")
+            FeedbackManager.shared.playFailureSound()
             return
         }
 
