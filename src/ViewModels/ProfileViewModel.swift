@@ -51,7 +51,9 @@ final class ProfileViewModel: ObservableObject {
             saveProfiles()
         }
 
-        detectActiveProfile()
+        Task { @MainActor in
+            await detectActiveProfile()
+        }
     }
 
     /// Encodes the profile list and writes it to `UserDefaults`.
@@ -78,10 +80,6 @@ final class ProfileViewModel: ObservableObject {
         isSwitching = true
         lastError = nil
 
-        // Prevent macOS from terminating the app while switching
-        ProcessInfo.processInfo.disableSuddenTermination()
-        defer { ProcessInfo.processInfo.enableSuddenTermination() }
-
         let sshManager = SSHConfigManager()
 
         // Validate SSH key exists before doing anything
@@ -93,7 +91,7 @@ final class ProfileViewModel: ObservableObject {
             return
         }
 
-        let gitSuccess = GitConfigManager.applyProfile(gitName: profile.gitName, gitEmail: profile.gitEmail)
+        let gitSuccess = await GitConfigManager.applyProfile(gitName: profile.gitName, gitEmail: profile.gitEmail)
         guard gitSuccess else {
             lastError = "Failed to apply Git configuration."
             isSwitching = false
@@ -103,10 +101,10 @@ final class ProfileViewModel: ObservableObject {
         }
 
         // Ensure HTTPS URLs are rewritten to SSH so profile switching works for all clones
-        GitConfigManager.ensureSSHInsteadOf()
+        await GitConfigManager.ensureSSHInsteadOf()
 
         // Switch gh CLI account to match this profile
-        GHAuthManager.switchToAccount(profile.username)
+        await GHAuthManager.switchToAccount(profile.username)
 
         let sshSuccess = sshManager.applyIdentity(keyPath: profile.sshKeyPath)
         guard sshSuccess else {
@@ -117,7 +115,7 @@ final class ProfileViewModel: ObservableObject {
             return
         }
 
-        let agentSuccess = sshManager.addKeyToAgent(keyPath: profile.sshKeyPath)
+        let agentSuccess = await sshManager.addKeyToAgent(keyPath: profile.sshKeyPath)
         guard agentSuccess else {
             lastError = "Failed to add SSH key to agent. Make sure the key is valid and the passphrase (if any) is cached."
             isSwitching = false
@@ -159,17 +157,19 @@ final class ProfileViewModel: ObservableObject {
     // MARK: - Detection
 
     /// Inspects the current Git user name, email, and SSH identity to infer the active profile.
-    func detectActiveProfile() {
-        let current = GitConfigManager.getCurrentUser()
+    func detectActiveProfile() async {
+        let current = await GitConfigManager.getCurrentUser()
         let sshManager = SSHConfigManager()
         let currentIdentity = sshManager.readCurrentIdentity()
 
-        activeProfileID = profiles.first(where: { profile in
-            let nameMatches = profile.gitName == current.name
-            let emailMatches = profile.gitEmail == current.email
-            let identityMatches = matchIdentity(profile.sshKeyPath, currentIdentity)
-            return nameMatches && emailMatches && identityMatches
-        })?.id
+        await MainActor.run {
+            activeProfileID = profiles.first(where: { profile in
+                let nameMatches = profile.gitName == current.name
+                let emailMatches = profile.gitEmail == current.email
+                let identityMatches = matchIdentity(profile.sshKeyPath, currentIdentity)
+                return nameMatches && emailMatches && identityMatches
+            })?.id
+        }
     }
 
     /// Compares two SSH identity paths, resolving a leading `~` to the home directory.
