@@ -3,7 +3,9 @@ import SwiftUI
 struct ContentView: View {
     @EnvironmentObject var viewModel: ProfileViewModel
     @State private var isPresentingEditor = false
+    @State private var isPresentingScanner = false
     @State private var editingProfile: GitProfile? = nil
+    @State private var scanResults: [ScannedProfile] = []
 
     var body: some View {
         VStack(spacing: 0) {
@@ -19,7 +21,7 @@ struct ContentView: View {
                         profileGrid
                     }
 
-                    addButton
+                    actionButtons
                 }
                 .padding(24)
             }
@@ -28,6 +30,11 @@ struct ContentView: View {
         .sheet(isPresented: $isPresentingEditor) {
             ProfileEditorView(profile: editingProfile)
                 .environmentObject(viewModel)
+        }
+        .sheet(isPresented: $isPresentingScanner) {
+            ScanResultsView(results: scanResults) { selected in
+                viewModel.importScannedProfiles(selected)
+            }
         }
     }
 
@@ -80,29 +87,56 @@ struct ContentView: View {
     }
 
     private var emptyState: some View {
-        VStack(spacing: 12) {
-            Image(systemName: "person.crop.circle.badge.plus")
-                .font(.system(size: 48, weight: .light))
+        VStack(spacing: 16) {
+            Image(systemName: "magnifyingglass.circle")
+                .font(.system(size: 56, weight: .light))
                 .foregroundStyle(.secondary)
                 .symbolRenderingMode(.hierarchical)
 
             Text("No profiles yet")
-                .font(.system(size: 15, weight: .semibold))
+                .font(.system(size: 16, weight: .semibold))
                 .foregroundStyle(.secondary)
+
+            Text("Scan your Mac to automatically find existing GitHub accounts, SSH keys, and Git configurations.")
+                .font(.system(size: 12))
+                .foregroundStyle(.secondary)
+                .multilineTextAlignment(.center)
+                .frame(maxWidth: 320)
+
+            Button {
+                runScan()
+            } label: {
+                Label("Scan for Accounts", systemImage: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
-        .frame(maxWidth: .infinity, minHeight: 180)
+        .frame(maxWidth: .infinity, minHeight: 220)
     }
 
-    private var addButton: some View {
-        Button {
-            editingProfile = nil
-            isPresentingEditor = true
-        } label: {
-            Label("Add Profile", systemImage: "plus.circle.fill")
-                .font(.system(size: 14, weight: .semibold))
+    private var actionButtons: some View {
+        HStack(spacing: 12) {
+            Button {
+                runScan()
+            } label: {
+                Label("Scan", systemImage: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .buttonStyle(.bordered)
+            .controlSize(.large)
+            .disabled(viewModel.isScanning)
+
+            Button {
+                editingProfile = nil
+                isPresentingEditor = true
+            } label: {
+                Label("Add Profile", systemImage: "plus.circle.fill")
+                    .font(.system(size: 14, weight: .semibold))
+            }
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
         }
-        .buttonStyle(.borderedProminent)
-        .controlSize(.large)
         .padding(.top, 8)
     }
 
@@ -132,6 +166,15 @@ struct ContentView: View {
             .padding(.vertical, 10)
             .background(Color.red.opacity(0.9))
             .transition(.move(edge: .top).combined(with: .opacity))
+        }
+    }
+
+    // MARK: - Actions
+
+    private func runScan() {
+        Task { @MainActor in
+            scanResults = await viewModel.scanForProfiles()
+            isPresentingScanner = true
         }
     }
 }
