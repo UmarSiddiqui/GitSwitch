@@ -48,7 +48,7 @@
 
 ## ⭐ Star History
 
-[![Star History Chart](https://api.star-history.com/svg?repos=umarsiddiqui/GitSwitch&type=Date)](https://star-history.com/#umarsiddiqui/GitSwitch&Date)
+[![Star History Chart](https://api.star-history.com/svg?repos=umarsiddiqui/gitswitch&type=Date)](https://star-history.com/#umarsiddiqui/gitswitch&Date)
 
 ## Installation
 
@@ -74,13 +74,17 @@
 
 ## How It Works
 
-GitSwitch performs three atomic steps every time you switch profiles:
+When you pick a profile from the menu bar or Settings, GitSwitch runs a single switch pipeline (after checking that the profile’s SSH private key file exists):
 
-1. **Updates `~/.gitconfig`** — overwrites `user.name` and `user.email` with the selected profile's details
-2. **Updates `~/.ssh/config`** — points `IdentityFile` to the correct SSH private key for that profile
-3. **Runs `ssh-add`** — unloads the old key and loads the new one into the SSH agent
+1. **Global Git identity** — runs `git config --global user.name` and `user.email` so new commits use that profile’s name and email.
+2. **HTTPS → SSH for GitHub** — sets `url.git@github.com:.insteadOf` to `https://github.com/` so existing HTTPS remotes are rewritten to SSH and use the active key.
+3. **GitHub CLI (optional)** — if the `gh` command is installed, runs `gh auth switch --user <username>` so CLI actions match the profile.
+4. **`~/.ssh/config` for GitHub** — updates or creates the `Host github.com` block so `IdentityFile` points at that profile’s private key.
+5. **SSH agent** — runs `ssh-add -D` (clear identities), then `ssh-add` on the new key so authentication uses the right material.
 
-Optionally, it can also rewrite remote URLs from HTTPS to SSH so that all Git operations authenticate with the active key.
+Profiles, labels, and paths are stored in **UserDefaults** (`gitswitch_profiles`). On first launch, the app seeds example profiles you can edit in Settings.
+
+On startup, GitSwitch tries to **detect the active profile** by comparing global `user.name` / `user.email` and the current `IdentityFile` for `github.com` in `~/.ssh/config`.
 
 ## Tech Stack
 
