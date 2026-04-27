@@ -8,6 +8,8 @@ struct MenuBarView: View {
         VStack(alignment: .leading, spacing: 0) {
             header
 
+            activeProfileBanner
+
             if !viewModel.profiles.isEmpty {
                 profileList
                     .padding(.vertical, 4)
@@ -18,7 +20,7 @@ struct MenuBarView: View {
 
             footer
         }
-        .frame(minWidth: 260)
+        .frame(minWidth: 280)
         .background(.clear)
     }
 
@@ -32,6 +34,49 @@ struct MenuBarView: View {
             .padding(.horizontal, 16)
             .padding(.top, 12)
             .padding(.bottom, 6)
+    }
+
+    private var activeProfileBanner: some View {
+        Group {
+            if let activeID = viewModel.activeProfileID,
+               let profile = viewModel.profiles.first(where: { $0.id == activeID }) {
+                HStack(spacing: 10) {
+                    ZStack {
+                        Circle()
+                            .fill(Color.green.opacity(0.15))
+                            .frame(width: 36, height: 36)
+
+                        Image(systemName: "checkmark")
+                            .font(.system(size: 14, weight: .bold))
+                            .foregroundStyle(.green)
+                    }
+
+                    VStack(alignment: .leading, spacing: 2) {
+                        Text("Active Profile")
+                            .font(.system(size: 10, weight: .medium))
+                            .foregroundStyle(.secondary)
+
+                        Text(profile.name)
+                            .font(.system(size: 14, weight: .semibold))
+                            .foregroundStyle(.primary)
+
+                        if let date = viewModel.lastSwitchedDate {
+                            Text("Switched \(timeAgo(date))")
+                                .font(.system(size: 10))
+                                .foregroundStyle(.secondary)
+                        }
+                    }
+
+                    Spacer()
+                }
+                .padding(.horizontal, 14)
+                .padding(.vertical, 10)
+                .background(Color.green.opacity(0.08))
+                .cornerRadius(8)
+                .padding(.horizontal, 12)
+                .padding(.bottom, 4)
+            }
+        }
     }
 
     private var profileList: some View {
@@ -145,5 +190,21 @@ struct MenuBarView: View {
 
     private func openSettingsWindow() {
         openWindow(id: "settings")
+    }
+
+    private func timeAgo(_ date: Date) -> String {
+        let interval = Date().timeIntervalSince(date)
+        if interval < 60 {
+            return "just now"
+        } else if interval < 3600 {
+            let mins = Int(interval / 60)
+            return "\(mins)m ago"
+        } else if interval < 86400 {
+            let hrs = Int(interval / 3600)
+            return "\(hrs)h ago"
+        } else {
+            let days = Int(interval / 86400)
+            return "\(days)d ago"
+        }
     }
 }
