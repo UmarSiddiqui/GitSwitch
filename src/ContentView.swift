@@ -2,6 +2,7 @@ import SwiftUI
 
 struct ContentView: View {
     @EnvironmentObject var viewModel: ProfileViewModel
+    @Environment(\.colorScheme) private var colorScheme
     @State private var isPresentingEditor = false
     @State private var isPresentingScanner = false
     @State private var editingProfile: GitProfile? = nil
@@ -12,21 +13,32 @@ struct ContentView: View {
             errorBanner
 
             ScrollView {
-                VStack(spacing: 20) {
-                    header
+                VStack(alignment: .leading, spacing: 0) {
+                    settingsHeader
 
-                    if viewModel.profiles.isEmpty {
-                        emptyState
-                    } else {
+                    if !viewModel.profiles.isEmpty {
+                        GitSwitchTheme.sectionCaption("Profiles")
+                            .padding(.top, 20)
+                            .padding(.bottom, 10)
+
                         profileGrid
+                    } else {
+                        emptyState
+                            .padding(.top, 28)
                     }
 
                     actionButtons
+                        .padding(.top, viewModel.profiles.isEmpty ? 20 : 24)
                 }
-                .padding(24)
+                .padding(.horizontal, 24)
+                .padding(.bottom, 28)
+                .padding(.top, 8)
             }
         }
-        .frame(minWidth: 480, minHeight: 360)
+        .settingsWindowTitle()
+        .frame(minWidth: 520, minHeight: 400)
+        .tint(GitSwitchTheme.brandIndigo)
+        .background(settingsBackground)
         .sheet(isPresented: $isPresentingEditor) {
             ProfileEditorView(profile: editingProfile)
                 .environmentObject(viewModel)
@@ -38,23 +50,45 @@ struct ContentView: View {
         }
     }
 
-    // MARK: - Subviews
+    // MARK: - Chrome
 
-    private var header: some View {
-        VStack(spacing: 4) {
-            Text("Git Profiles")
-                .font(.system(size: 24, weight: .bold, design: .rounded))
-                .foregroundStyle(.primary)
-
-            Text("Switch between your Git identities")
-                .font(.system(size: 13, weight: .regular))
-                .foregroundStyle(.secondary)
+    private var settingsBackground: some View {
+        ZStack {
+            Color(nsColor: .windowBackgroundColor)
+            LinearGradient(
+                colors: [
+                    GitSwitchTheme.brandIndigo.opacity(colorScheme == .dark ? 0.12 : 0.06),
+                    Color.clear,
+                ],
+                startPoint: .topLeading,
+                endPoint: .center
+            )
         }
-        .padding(.bottom, 8)
+        .ignoresSafeArea()
     }
 
+    private var settingsHeader: some View {
+        HStack(alignment: .center, spacing: 14) {
+            GitSwitchBrandTile(size: 36)
+
+            VStack(alignment: .leading, spacing: 3) {
+                Text("Settings")
+                    .font(.system(size: 22, weight: .bold, design: .rounded))
+                    .foregroundStyle(.primary)
+                Text("GitSwitch · profiles on this Mac")
+                    .font(.system(size: 12, weight: .medium))
+                    .foregroundStyle(.secondary)
+            }
+
+            Spacer(minLength: 0)
+        }
+        .padding(.vertical, 8)
+    }
+
+    // MARK: - Profiles
+
     private var profileGrid: some View {
-        LazyVGrid(columns: [GridItem(.flexible())], spacing: 16) {
+        LazyVGrid(columns: [GridItem(.flexible())], spacing: 14) {
             ForEach(viewModel.profiles) { profile in
                 ProfileCardView(profile: profile)
                     .environmentObject(viewModel)
@@ -82,37 +116,57 @@ struct ContentView: View {
                     }
             }
         }
-        .animation(.spring(), value: viewModel.activeProfileID)
-        .animation(.spring(), value: viewModel.profiles.count)
+        .animation(.easeOut(duration: 0.2), value: viewModel.activeProfileID)
+        .animation(.easeOut(duration: 0.2), value: viewModel.profiles.count)
     }
 
     private var emptyState: some View {
-        VStack(spacing: 16) {
-            Image(systemName: "magnifyingglass.circle")
-                .font(.system(size: 56, weight: .light))
-                .foregroundStyle(.secondary)
-                .symbolRenderingMode(.hierarchical)
+        VStack(spacing: 18) {
+            ZStack {
+                Circle()
+                    .fill(
+                        LinearGradient(
+                            colors: [
+                                GitSwitchTheme.brandIndigo.opacity(0.35),
+                                GitSwitchTheme.brandIndigo.opacity(0.08),
+                            ],
+                            startPoint: .topLeading,
+                            endPoint: .bottomTrailing
+                        )
+                    )
+                    .frame(width: 88, height: 88)
 
-            Text("No profiles yet")
-                .font(.system(size: 16, weight: .semibold))
-                .foregroundStyle(.secondary)
+                Image(systemName: "person.2.crop.square.stack")
+                    .font(.system(size: 36, weight: .medium))
+                    .foregroundStyle(GitSwitchTheme.brandIndigo)
+                    .symbolRenderingMode(.hierarchical)
+            }
 
-            Text("Scan your Mac to automatically find existing GitHub accounts, SSH keys, and Git configurations.")
-                .font(.system(size: 12))
-                .foregroundStyle(.secondary)
-                .multilineTextAlignment(.center)
-                .frame(maxWidth: 320)
+            VStack(spacing: 8) {
+                Text("No profiles yet")
+                    .font(.system(size: 17, weight: .semibold, design: .rounded))
+                    .foregroundStyle(.primary)
+
+                Text("Scan this Mac for GitHub CLI logins, SSH keys, and Git config—or add a profile by hand.")
+                    .font(.system(size: 13, weight: .regular))
+                    .foregroundStyle(.secondary)
+                    .multilineTextAlignment(.center)
+                    .frame(maxWidth: 360)
+                    .fixedSize(horizontal: false, vertical: true)
+            }
 
             Button {
                 runScan()
             } label: {
-                Label("Scan for Accounts", systemImage: "magnifyingglass")
-                    .font(.system(size: 14, weight: .semibold))
+                Label("Scan for accounts", systemImage: "magnifyingglass")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
         }
-        .frame(maxWidth: .infinity, minHeight: 220)
+        .frame(maxWidth: .infinity)
+        .padding(.vertical, 20)
+        .padding(.horizontal, 12)
     }
 
     private var actionButtons: some View {
@@ -121,7 +175,7 @@ struct ContentView: View {
                 runScan()
             } label: {
                 Label("Scan", systemImage: "magnifyingglass")
-                    .font(.system(size: 14, weight: .semibold))
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
             }
             .buttonStyle(.bordered)
             .controlSize(.large)
@@ -131,40 +185,48 @@ struct ContentView: View {
                 editingProfile = nil
                 isPresentingEditor = true
             } label: {
-                Label("Add Profile", systemImage: "plus.circle.fill")
-                    .font(.system(size: 14, weight: .semibold))
+                Label("Add profile", systemImage: "plus.circle.fill")
+                    .font(.system(size: 14, weight: .semibold, design: .rounded))
             }
             .buttonStyle(.borderedProminent)
             .controlSize(.large)
         }
-        .padding(.top, 8)
     }
 
     @ViewBuilder
     private var errorBanner: some View {
         if let error = viewModel.lastError {
-            HStack(spacing: 10) {
+            HStack(alignment: .top, spacing: 12) {
                 Image(systemName: "exclamationmark.triangle.fill")
+                    .font(.system(size: 14, weight: .semibold))
                     .foregroundStyle(.white)
+                    .padding(8)
+                    .background(Circle().fill(.white.opacity(0.2)))
 
                 Text(error)
-                    .font(.system(size: 12, weight: .medium))
-                    .foregroundStyle(.white)
-                    .lineLimit(2)
-
-                Spacer()
+                    .font(.system(size: 12, weight: .medium, design: .rounded))
+                    .foregroundStyle(.white.opacity(0.95))
+                    .lineLimit(4)
+                    .frame(maxWidth: .infinity, alignment: .leading)
 
                 Button {
                     viewModel.lastError = nil
                 } label: {
                     Image(systemName: "xmark.circle.fill")
-                        .foregroundStyle(.white.opacity(0.8))
+                        .font(.system(size: 16, weight: .medium))
+                        .foregroundStyle(.white.opacity(0.85))
                 }
                 .buttonStyle(.plain)
             }
-            .padding(.horizontal, 16)
-            .padding(.vertical, 10)
-            .background(Color.red.opacity(0.9))
+            .padding(.horizontal, 18)
+            .padding(.vertical, 12)
+            .background(
+                LinearGradient(
+                    colors: [Color.red.opacity(0.92), Color.red.opacity(0.75)],
+                    startPoint: .leading,
+                    endPoint: .trailing
+                )
+            )
             .transition(.move(edge: .top).combined(with: .opacity))
         }
     }

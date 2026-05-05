@@ -68,7 +68,7 @@ final class SSHConfigManager {
     }
 
     /// Rewrites or adds the `Host github.com` block with the supplied `IdentityFile`.
-    func applyIdentity(keyPath: String) -> Bool {
+    func applyIdentity(keyPath: String) -> (success: Bool, message: String?) {
         let sshDir = sshDirectory
         if !FileManager.default.fileExists(atPath: sshDir.path) {
             do {
@@ -78,7 +78,7 @@ final class SSHConfigManager {
                     attributes: [.posixPermissions: 0o700]
                 )
             } catch {
-                return false
+                return (false, "Could not create ~/.ssh: \(error.localizedDescription)")
             }
         }
 
@@ -138,9 +138,9 @@ final class SSHConfigManager {
 
         do {
             try newContent.write(to: configPath, atomically: true, encoding: .utf8)
-            return true
+            return (true, nil)
         } catch {
-            return false
+            return (false, "Could not write \(sshConfigPath): \(error.localizedDescription)")
         }
     }
 
@@ -150,17 +150,26 @@ final class SSHConfigManager {
     }
 
     /// Clears all identities from the SSH agent and adds the specified key.
-    func addKeyToAgent(keyPath: String) async -> Bool {
+    func addKeyToAgent(keyPath: String) async -> (success: Bool, message: String?) {
         let resolvedPath = resolvePath(keyPath)
 
         guard FileManager.default.fileExists(atPath: resolvedPath) else {
-            return false
+            return (false, "SSH key not found at \(resolvedPath).")
         }
 
-        // Remove all existing identities (best-effort)
         _ = await ShellRunner.run(["ssh-add", "-D"])
 
-        // Add the new identity
-        return await ShellRunner.runSuccess(["ssh-add", resolvedPath])
+        let r = await ShellRunner.run(["ssh-add", resolvedPath])
+        guard r.exitCode == 0 else {
+            let detail = [r.standardError, r.standardOutput]
+                .compactMap { $0 }
+                .filter { !$0.isEmpty }
+                .joined(separator: "\n")
+            if detail.isEmpty {
+                return (false, "ssh-add failed (exit \(r.exitCode)).")
+            }
+            return (false, detail)
+        }
+        return (true, nil)
     }
 }

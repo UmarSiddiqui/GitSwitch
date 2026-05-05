@@ -4,6 +4,7 @@ struct ProfileEditorView: View {
     let profile: GitProfile?
     @EnvironmentObject var viewModel: ProfileViewModel
     @Environment(\.dismiss) private var dismiss
+    @Environment(\.colorScheme) private var colorScheme
 
     @State private var name = ""
     @State private var username = ""
@@ -25,7 +26,9 @@ struct ProfileEditorView: View {
             actionButtons
                 .padding(24)
         }
-        .frame(minWidth: 420, minHeight: 380)
+        .frame(minWidth: 440, minHeight: 400)
+        .tint(GitSwitchTheme.brandIndigo)
+        .background(editorBackground)
         .onAppear {
             if let p = profile {
                 name = p.name
@@ -40,66 +43,95 @@ struct ProfileEditorView: View {
         }
     }
 
+    private var editorBackground: some View {
+        ZStack {
+            Color(nsColor: .windowBackgroundColor)
+            LinearGradient(
+                colors: [
+                    GitSwitchTheme.brandIndigo.opacity(colorScheme == .dark ? 0.1 : 0.05),
+                    Color.clear,
+                ],
+                startPoint: .topLeading,
+                endPoint: .center
+            )
+        }
+        .ignoresSafeArea()
+    }
+
     // MARK: - Subviews
 
     private var formContent: some View {
-        VStack(alignment: .leading, spacing: 16) {
-            VStack(alignment: .leading, spacing: 4) {
-                Text(isEditing ? "Edit Profile" : "New Profile")
-                    .font(.system(size: 18, weight: .bold, design: .rounded))
-                    .foregroundStyle(.primary)
-
-                Text("Configure your Git identity and SSH key")
-                    .font(.system(size: 12))
-                    .foregroundStyle(.secondary)
-            }
-
-            VStack(alignment: .leading, spacing: 12) {
-                formRow("Profile Name", text: $name, placeholder: "e.g. Work")
-                formRow("GitHub Username", text: $username, placeholder: "e.g. umar-abweb")
-                formRow("Git Name", text: $gitName, placeholder: "e.g. Umar ABWeb")
-                formRow("Git Email", text: $gitEmail, placeholder: "e.g. umar@abweb.com.au")
-
-                sshKeyRow
-
-                if !isEditing {
-                    connectRow
+        VStack(alignment: .leading, spacing: 20) {
+            HStack(alignment: .center, spacing: 12) {
+                GitSwitchBrandTile(size: 30)
+                VStack(alignment: .leading, spacing: 3) {
+                    Text(isEditing ? "Edit profile" : "New profile")
+                        .font(.system(size: 20, weight: .bold, design: .rounded))
+                        .foregroundStyle(.primary)
+                    Text("Git identity & SSH key for GitSwitch")
+                        .font(.system(size: 12, weight: .medium))
+                        .foregroundStyle(.secondary)
                 }
-
-                Toggle("Set as default profile", isOn: $isDefault)
-                    .font(.system(size: 13))
             }
+
+            GitSwitchTheme.sectionCaption("Identity")
+            VStack(alignment: .leading, spacing: 12) {
+                formRow("Profile name", text: $name, placeholder: "e.g. Work")
+                formRow("GitHub username", text: $username, placeholder: "e.g. umar-abweb")
+                formRow("Git author name", text: $gitName, placeholder: "e.g. Umar ABWeb")
+                formRow("Git author email", text: $gitEmail, placeholder: "e.g. umar@abweb.com.au")
+            }
+
+            GitSwitchTheme.sectionCaption("SSH")
+            VStack(alignment: .leading, spacing: 12) {
+                sshKeyRow
+            }
+
+            if !isEditing {
+                GitSwitchTheme.sectionCaption("GitHub")
+                connectRow
+            }
+
+            Toggle("Set as default profile", isOn: $isDefault)
+                .font(.system(size: 13, weight: .medium, design: .rounded))
+                .padding(.top, 4)
         }
     }
 
     private func formRow(_ label: String, text: Binding<String>, placeholder: String) -> some View {
-        VStack(alignment: .leading, spacing: 4) {
+        VStack(alignment: .leading, spacing: 5) {
             Text(label)
-                .font(.system(size: 12, weight: .medium))
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .tracking(0.4)
 
             TextField(placeholder, text: text)
+                .font(.system(size: 13, weight: .regular))
                 .textFieldStyle(.roundedBorder)
         }
     }
 
     private var sshKeyRow: some View {
-        VStack(alignment: .leading, spacing: 4) {
-            Text("SSH Private Key Path")
-                .font(.system(size: 12, weight: .medium))
+        VStack(alignment: .leading, spacing: 5) {
+            Text("Private key path")
+                .font(.system(size: 11, weight: .semibold, design: .rounded))
                 .foregroundStyle(.secondary)
+                .textCase(.uppercase)
+                .tracking(0.4)
 
             HStack(spacing: 8) {
-                TextField("~/.ssh/id_rsa", text: $sshKeyPath)
-                    .font(.system(.body, design: .monospaced))
+                TextField("~/.ssh/id_ed25519", text: $sshKeyPath)
+                    .font(.system(size: 13, design: .monospaced))
                     .textFieldStyle(.roundedBorder)
 
                 Button {
                     browseForSSHKey()
                 } label: {
                     Text("Browse…")
+                        .font(.system(size: 12, weight: .semibold, design: .rounded))
                 }
-                .controlSize(.small)
+                .controlSize(.regular)
             }
         }
     }
@@ -127,27 +159,31 @@ struct ProfileEditorView: View {
                 }
             }
 
-            Text("Opens your browser to log in via GitHub CLI or add your SSH key to GitHub.")
-                .font(.system(size: 11))
+            Text("Use GitHub CLI in the browser, or paste your public key on GitHub.")
+                .font(.system(size: 11, weight: .regular))
                 .foregroundStyle(.secondary)
         }
     }
 
     private var actionButtons: some View {
-        HStack {
+        HStack(spacing: 12) {
             Button("Cancel", role: .cancel) {
                 dismiss()
             }
             .keyboardShortcut(.cancelAction)
+            .controlSize(.large)
 
             Spacer()
 
             Button {
                 saveProfile()
             } label: {
-                Text(isEditing ? "Save" : "Add Profile")
+                Text(isEditing ? "Save changes" : "Add profile")
+                    .font(.system(size: 13, weight: .semibold, design: .rounded))
             }
             .keyboardShortcut(.defaultAction)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.large)
             .disabled(name.isEmpty || username.isEmpty || gitName.isEmpty || sshKeyPath.isEmpty)
         }
     }

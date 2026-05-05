@@ -22,6 +22,8 @@
 		A1000023 /* ShellRunner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000022 /* ShellRunner.swift */; };
 		A1000025 /* ProfileScanner.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000024 /* ProfileScanner.swift */; };
 		A1000027 /* ScanResultsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000026 /* ScanResultsView.swift */; };
+		A1000029 /* GitSwitchTheme.swift in Sources */ = {isa = PBXBuildFile; fileRef = A1000028 /* GitSwitchTheme.swift */; };
+		A100002B /* AppKitSettingsSupport.swift in Sources */ = {isa = PBXBuildFile; fileRef = A100002A /* AppKitSettingsSupport.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -40,6 +42,8 @@
 		A1000022 /* ShellRunner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShellRunner.swift; sourceTree = "<group>"; };
 		A1000024 /* ProfileScanner.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileScanner.swift; sourceTree = "<group>"; };
 		A1000026 /* ScanResultsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScanResultsView.swift; sourceTree = "<group>"; };
+		A1000028 /* GitSwitchTheme.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = GitSwitchTheme.swift; sourceTree = "<group>"; };
+		A100002A /* AppKitSettingsSupport.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppKitSettingsSupport.swift; sourceTree = "<group>"; };
 		A1FFFFFF /* GitSwitch.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = GitSwitch.app; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
@@ -104,6 +108,8 @@
 				A1000020 /* GHAuthManager.swift */,
 				A1000022 /* ShellRunner.swift */,
 				A1000024 /* ProfileScanner.swift */,
+				A1000028 /* GitSwitchTheme.swift */,
+				A100002A /* AppKitSettingsSupport.swift */,
 			);
 			path = Utils;
 			sourceTree = "<group>";
@@ -197,6 +203,8 @@
 				A1000023 /* ShellRunner.swift in Sources */,
 				A1000025 /* ProfileScanner.swift in Sources */,
 				A1000027 /* ScanResultsView.swift in Sources */,
+				A1000029 /* GitSwitchTheme.swift in Sources */,
+				A100002B /* AppKitSettingsSupport.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -328,6 +336,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = GitSwitch;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
@@ -356,6 +365,7 @@
 				ENABLE_HARDENED_RUNTIME = YES;
 				ENABLE_PREVIEWS = YES;
 				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_KEY_CFBundleDisplayName = GitSwitch;
 				INFOPLIST_KEY_LSApplicationCategoryType = "public.app-category.developer-tools";
 				INFOPLIST_KEY_LSUIElement = YES;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";

@@ -24,11 +24,15 @@ final class ProfileViewModel: ObservableObject {
     // MARK: - Persistence
 
     private func loadProfiles() {
-        if let data = UserDefaults.standard.data(forKey: profilesKey),
-           let saved = try? JSONDecoder().decode([GitProfile].self, from: data) {
-            profiles = saved
+        if let data = UserDefaults.standard.data(forKey: profilesKey) {
+            if let saved = try? JSONDecoder().decode([GitProfile].self, from: data) {
+                profiles = saved
+            } else {
+                profiles = []
+                lastError = "Could not read saved profiles. The list was reset."
+                saveProfiles()
+            }
         } else {
-            // First launch — leave empty so the user can scan or add profiles
             profiles = []
             saveProfiles()
         }
@@ -73,9 +77,9 @@ final class ProfileViewModel: ObservableObject {
             return
         }
 
-        let gitSuccess = await GitConfigManager.applyProfile(gitName: profile.gitName, gitEmail: profile.gitEmail)
-        guard gitSuccess else {
-            lastError = "Failed to apply Git configuration."
+        let gitResult = await GitConfigManager.applyProfile(gitName: profile.gitName, gitEmail: profile.gitEmail)
+        guard gitResult.success else {
+            lastError = gitResult.message ?? "Failed to apply Git configuration."
             isSwitching = false
             FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "Git config failed")
             FeedbackManager.shared.playFailureSound()
@@ -88,18 +92,23 @@ final class ProfileViewModel: ObservableObject {
         // Switch gh CLI account to match this profile
         await GHAuthManager.switchToAccount(profile.username)
 
-        let sshSuccess = sshManager.applyIdentity(keyPath: profile.sshKeyPath)
-        guard sshSuccess else {
-            lastError = "Failed to update SSH configuration."
+        let sshResult = sshManager.applyIdentity(keyPath: profile.sshKeyPath)
+        guard sshResult.success else {
+            lastError = sshResult.message ?? "Failed to update SSH configuration."
             isSwitching = false
             FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "SSH config failed")
             FeedbackManager.shared.playFailureSound()
             return
         }
 
-        let agentSuccess = await sshManager.addKeyToAgent(keyPath: profile.sshKeyPath)
-        guard agentSuccess else {
-            lastError = "Failed to add SSH key to agent. Make sure the key is valid and the passphrase (if any) is cached."
+        let agentResult = await sshManager.addKeyToAgent(keyPath: profile.sshKeyPath)
+        guard agentResult.success else {
+            let hint = "Could not load the key into ssh-agent (passphrase keys may need `ssh-add` in Terminal first)."
+            if let detail = agentResult.message {
+                lastError = "\(detail)\n\(hint)"
+            } else {
+                lastError = hint
+            }
             isSwitching = false
             FeedbackManager.shared.notifySwitchFailure(profileName: profile.name, error: "SSH agent failed")
             FeedbackManager.shared.playFailureSound()
@@ -174,14 +183,33 @@ final class ProfileViewModel: ObservableObject {
         let sshManager = SSHConfigManager()
         let currentIdentity = sshManager.readCurrentIdentity()
 
-        await MainActor.run {
+        let matchedProfile: GitProfile? = await MainActor.run {
             activeProfileID = profiles.first(where: { profile in
                 let nameMatches = profile.gitName == current.name
                 let emailMatches = profile.gitEmail == current.email
                 let identityMatches = matchIdentity(profile.sshKeyPath, currentIdentity)
                 return nameMatches && emailMatches && identityMatches
             })?.id
+
+            if let id = activeProfileID {
+                return profiles.first { $0.id == id }
+            }
+            return nil
         }
+
+        await reconcileGitHubCLI(with: matchedProfile)
+    }
+
+    /// After inferring the profile from Git + SSH, align `gh` with it if they drifted
+    /// (e.g. `gh auth switch` used elsewhere, or a previous session never re-ran a menu switch).
+    private func reconcileGitHubCLI(with profile: GitProfile?) async {
+        guard let profile, !profile.username.isEmpty else { return }
+        guard await GHAuthManager.isAvailable() else { return }
+
+        guard let ghLogin = await GHAuthManager.activeAccount() else { return }
+        guard ghLogin.caseInsensitiveCompare(profile.username) != .orderedSame else { return }
+
+        await GHAuthManager.switchToAccount(profile.username)
     }
 
     /// Compares two SSH identity paths, resolving a leading `~` to the home directory.
